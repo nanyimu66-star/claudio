@@ -1,0 +1,13 @@
+{
+  "name": "Claudio — 私人电台",
+  "short_name": "Claudio",
+  "description": "你的赛博 DJ，AI 驱动的私人电台",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#0a0604",
+  "background_color": "#0a0604",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

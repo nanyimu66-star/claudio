@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+:root {
+  --bg-primary: #0a0604;
+  --bg-card: rgba(255, 255, 255, 0.03);
+  --amber: #f59e0b;
+  --amber-glow: 0 0 12px rgba(245, 158, 11, 0.2);
+}
+
+body {
+  background: radial-gradient(circle at center, #1a0f05 0%, #000000 50%, #000000 100%);
+  color: #e8e8ed;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+/* 毛玻璃卡片 + 琥珀色金属光泽边缘 */
+.glass {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid transparent;
+  border-image: linear-gradient(
+    135deg,
+    rgba(245, 158, 11, 0.06) 0%,
+    rgba(255, 255, 255, 0.02) 35%,
+    rgba(245, 158, 11, 0.04) 65%,
+    rgba(255, 255, 255, 0.01) 100%
+  ) 1;
+}
+
+/* 琥珀色发光文字 · 双层光晕 Bloom */
+.amber-glow {
+  color: #ff8c00;
+  text-shadow: 0 0 6px rgba(255, 140, 0, 0.6);
+  filter: drop-shadow(0 0 15px rgba(255, 140, 0, 0.8)) drop-shadow(0 0 35px rgba(255, 69, 0, 0.4));
+}
+
+/* 圆形触摸按钮基类 */
+.btn-cyber {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.5);
+  transition: all 0.2s ease;
+  cursor: pointer;
+  user-select: none;
+}
+.btn-cyber:hover {
+  background: rgba(245, 158, 11, 0.08);
+  border-color: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+}
+.btn-cyber:active {
+  transform: scale(0.92);
+}
+
+/* 滚动条 */
+::-webkit-scrollbar {
+  width: 2px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 1px;
+}
