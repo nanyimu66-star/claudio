@@ -1,6 +1,8 @@
 # Claudio — AI 电台 DJ
 
 一个 AI 驱动的音乐电台，Claude 扮演 DJ 角色，根据你的心情和偏好推荐网易云音乐歌曲。
+<img width="1306" height="969" alt="image" src="https://github.com/user-attachments/assets/325d3e50-51a1-4c48-8434-a13f82c9fbfc" />
+
 
 ## 技术栈
 
