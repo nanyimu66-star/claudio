@@ -6,18 +6,32 @@
 
 - **Next.js 16** — 前端 + API 路由
 - **Claude API** — DJ 对话和音乐推荐
-- **网易云音乐** — 歌曲播放
+- **网易云音乐** — 歌曲搜索与播放
 - **Fish Audio** — TTS 语音播报
 - **better-sqlite3** — 本地状态持久化
+
+## 前置依赖
+
+本应用依赖 [api-enhanced](https://github.com/nanyimu66-star/api-enhanced) 网易云音乐 API 服务。
+
+```bash
+git clone https://github.com/nanyimu66-star/api-enhanced.git
+cd api-enhanced
+npm install
+npm start          # 默认 http://localhost:3000
+```
 
 ## 本地运行
 
 ```bash
-npm install
-npm run dev
-```
+# 1. 先启动 API 服务（另一个终端）
+cd api-enhanced && npm start
 
-访问 http://localhost:3001
+# 2. 再启动 Claudio
+cd claudio
+npm install
+npm run dev        # http://localhost:3001
+```
 
 ## 环境变量
 
