@@ -39,8 +39,8 @@ npm run dev        # http://localhost:3001
 
 ```
 ANTHROPIC_API_KEY=your_key
-ANTHROPIC_BASE_URL=https://api.deepseek.com/anthropic
-ANTHROPIC_MODEL=deepseek-v4-flash
+ANTHROPIC_BASE_URL= API 接口地址
+ANTHROPIC_MODEL= 模型ID
 NETEASE_COOKIE=your_netease_cookie
 FISH_AUDIO_API_KEY=your_fish_audio_key
 FISH_AUDIO_VOICE_ID=your_voice_id
