@@ -6,17 +6,43 @@ type Props = {
   song: Song | null;
   audioRef: RefObject<HTMLAudioElement | null>;
   onNext: () => void;
+  onPrev: () => void;
   onLike?: (message: string) => void;
 };
 
-export default function Player({ song, audioRef, onNext, onLike }: Props) {
+function clock(date: Date) {
+  return date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false });
+}
+function weekday(date: Date) {
+  return date.toLocaleDateString("en-US", { weekday: "long" });
+}
+function calendar(date: Date) {
+  const parts = new Intl.DateTimeFormat("en-US", { day: "2-digit", month: "short", year: "numeric" }).formatToParts(date);
+  const d = parts.find((p) => p.type === "day")?.value ?? "";
+  const m = parts.find((p) => p.type === "month")?.value?.toUpperCase() ?? "";
+  const y = parts.find((p) => p.type === "year")?.value ?? "";
+  return `${d} · ${m} · ${y}`;
+}
+function fmt(seconds: number) {
+  if (!Number.isFinite(seconds)) return "0:00";
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60).toString().padStart(2, "0");
+  return `${m}:${s}`;
+}
+
+export default function Player({ song, audioRef, onNext, onPrev, onLike }: Props) {
   const [playing, setPlaying] = useState(false);
-  const [progress, setProgress] = useState(0);
   const [liked, setLiked] = useState(false);
+  const [now, setNow] = useState(() => new Date());
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+
+  useEffect(() => { setLiked(false); }, [song?.id]);
 
   useEffect(() => {
-    setLiked(false);
-  }, [song?.id]);
+    const id = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     const el = audioRef.current;
@@ -24,12 +50,20 @@ export default function Player({ song, audioRef, onNext, onLike }: Props) {
     const onPlay = () => setPlaying(true);
     const onPause = () => setPlaying(false);
     const onEnd = () => onNext();
-    const onTime = () => setProgress(el.duration ? (el.currentTime / el.duration) * 100 : 0);
+    const onTime = () => setCurrentTime(el.currentTime);
+    const onMeta = () => setDuration(el.duration || 0);
     el.addEventListener("play", onPlay);
     el.addEventListener("pause", onPause);
     el.addEventListener("ended", onEnd);
     el.addEventListener("timeupdate", onTime);
-    return () => { el.removeEventListener("play", onPlay); el.removeEventListener("pause", onPause); el.removeEventListener("ended", onEnd); el.removeEventListener("timeupdate", onTime); };
+    el.addEventListener("loadedmetadata", onMeta);
+    return () => {
+      el.removeEventListener("play", onPlay);
+      el.removeEventListener("pause", onPause);
+      el.removeEventListener("ended", onEnd);
+      el.removeEventListener("timeupdate", onTime);
+      el.removeEventListener("loadedmetadata", onMeta);
+    };
   }, [audioRef, onNext]);
 
   function togglePlay() {
@@ -55,48 +89,42 @@ export default function Player({ song, audioRef, onNext, onLike }: Props) {
     }
   }
 
-  return (
-    <div className="glass rounded-full px-4 py-2 max-w-md mx-auto w-full flex items-center gap-3">
-      {/* 琥珀色指示灯 */}
-      <div className={`w-1.5 h-1.5 rounded-full shrink-0 transition-all duration-500 ${
-        playing
-          ? "bg-[#fbbf24] shadow-[0_0_8px_rgba(245,158,11,0.5)]"
-          : "bg-white/10"
-      }`} />
+  const progress = duration > 0 ? Math.min(100, (currentTime / duration) * 100) : 0;
 
-      {/* 歌名 + 进度条 */}
-      <div className="flex-1 min-w-0">
-        <div className="text-xs text-white/60 truncate font-light tracking-wide">
-          {song ? `${song.title} — ${song.artist}` : "电台待机中"}
-        </div>
-        <div className="h-[2px] bg-white/5 mt-1.5 rounded-full overflow-hidden">
-          <div
-            className="h-full rounded-full transition-all duration-300"
-            style={{ width: `${progress}%`, background: "linear-gradient(90deg, rgba(251,191,36,0.6), rgba(245,158,11,0.2))" }}
-          />
-        </div>
+  return (
+    <section className="device-player" aria-label="播放界面">
+      <div className="device-time-block">
+        <p className="device-time">{clock(now)}</p>
+        <p className="device-weekday">{weekday(now)}</p>
+        <p className="device-date">{calendar(now)}</p>
       </div>
 
-      {/* 喜欢 + 控制按钮 */}
-      <div className="flex items-center gap-1 shrink-0">
-        <button
-          onClick={handleLike}
-          disabled={!song || liked}
-          className={`btn-cyber text-sm transition-all duration-300 ${
-            liked
-              ? "text-[#fbbf24] border-[rgba(245,158,11,0.3)] bg-[rgba(245,158,11,0.08)]"
-              : ""
-          }`}
-        >
-          {liked ? "♥" : "♡"}
-        </button>
-        <button onClick={togglePlay} className="btn-cyber text-sm">
+      <div className="device-track">
+        <span className="device-air live">ON AIR</span>
+        <span className="device-now-label">Now Playing</span>
+        <h2>{song?.title ?? "Claudio 私人电台"}</h2>
+        <p>{song ? song.artist : "等待开播..."}</p>
+        <small>Claudio Selection</small>
+      </div>
+
+      <div className="device-controls">
+        <button onClick={onPrev} aria-label="Previous">‹</button>
+        <button className="device-play" onClick={togglePlay} aria-label={playing ? "Pause" : "Play"}>
           {playing ? "⏸" : "▶"}
         </button>
-        <button onClick={onNext} className="btn-cyber text-sm">
-          ⏭
+        <button onClick={onNext} aria-label="Next">›</button>
+        <button onClick={handleLike} aria-label="Like" disabled={!song || liked}>
+          {liked ? "♥" : "♡"}
         </button>
       </div>
-    </div>
+
+      <div className="device-progress-row">
+        <span>{fmt(currentTime)}</span>
+        <div className="device-progress" aria-label="播放进度">
+          <span style={{ width: `${progress}%` }} />
+        </div>
+        <span>{fmt(duration || 0)}</span>
+      </div>
+    </section>
   );
 }

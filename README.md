@@ -35,6 +35,23 @@ npm install
 npm run dev        # http://localhost:3001
 ```
 
+## 让 Claudio 更懂你
+
+Claudio 通过 `src/user/` 下的三个文件了解你的音乐偏好和状态：
+
+| 文件 | 用途 | 必填 |
+|---|---|---|
+| `taste.md` | 音乐偏好 — 写入你喜欢的歌曲和歌手，Claudio 会基于这些推荐 | 推荐 |
+| `routines.md` | 日常习惯 — 什么时段喜欢什么类型的音乐 | 可选 |
+| `mood-rules.md` | 情绪规则 — 不同心情对应的音乐策略和 DJ 话术 | 可选 |
+
+**如果想让 Claudio 推荐更准**，建议从网易云导入你的收藏歌曲到 `taste.md`：
+1. 启动项目后访问 `http://localhost:3001/api/cookie/netease` 扫码登录
+2. 调用网易云 API 获取你的"我喜欢"歌单
+3. 把歌曲名和歌手填入 `taste.md` 的歌曲列表
+
+已有模板文件可直接修改，项目启动后 DJ 会自动读取。
+
 ## 环境变量
 
 复制 `.env.local.example` 并填入你的 API key：

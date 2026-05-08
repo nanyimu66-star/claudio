@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { streamChat, Message } from "@/core/claude";
+import { detectIntent, createCurrentTrackReply } from "@/core/intent";
 import { searchSongs, getSongInfo } from "@/services/netease";
 import fs from "fs";
 import path from "path";
@@ -9,7 +10,7 @@ const sessions = new Map<string, Message[]>();
 
 export async function POST(req: NextRequest) {
   try {
-    const { message, sessionId = "default" } = await req.json();
+    const { message, sessionId = "default", currentSong = null } = await req.json();
     if (!message?.trim()) return new Response("message required", { status: 400 });
 
     const isSkip = message === "SKIP_AND_SEARCH_NEW_MUSIC";
@@ -26,6 +27,22 @@ export async function POST(req: NextRequest) {
     console.log(`[chat] Session: ${sessionId}, History: ${messages.length}`);
 
     const encoder = new TextEncoder();
+
+    // 当前歌曲查询 → 模板回复，不走 Claude，省 token 且零延迟
+    if (!isSkip && detectIntent(message) === "current_track") {
+      const reply = createCurrentTrackReply(currentSong);
+      messages.push({ role: "assistant", content: reply });
+      const stream = new ReadableStream({
+        start(controller) {
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "chunk", text: reply })}\n\n`));
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "done" })}\n\n`));
+          controller.close();
+        }
+      });
+      return new Response(stream, {
+        headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-cache", Connection: "keep-alive" },
+      });
+    }
     const stream = new ReadableStream({
       async start(controller) {
         const send = (data: object) => {
@@ -128,7 +145,7 @@ export async function POST(req: NextRequest) {
           let displayText = "";
           let rawBuffer = "";
 
-          await streamChat(messages, (chunk) => {
+          await streamChat(messages, currentSong, (chunk) => {
             fullReply += chunk;
             rawBuffer += chunk;
 

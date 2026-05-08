@@ -10,8 +10,12 @@ const MODEL = process.env.ANTHROPIC_MODEL || "claude-3-5-sonnet-latest";
 
 export type Message = { role: "user" | "assistant"; content: string };
 
-export async function streamChat(messages: Message[], onChunk: (text: string) => void): Promise<string> {
-  const system = buildSystemPrompt();
+export async function streamChat(
+  messages: Message[],
+  currentSong: { title: string; artist: string } | null,
+  onChunk: (text: string) => void,
+): Promise<string> {
+  const system = buildSystemPrompt(currentSong);
   let full = "";
 
   const stream = await client.messages.stream({

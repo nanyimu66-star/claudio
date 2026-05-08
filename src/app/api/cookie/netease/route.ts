@@ -49,18 +49,32 @@ async function saveCookie() {
     document.getElementById('qr-placeholder').innerHTML = '<img src="' + qr.qrimg + '" style="width:200px;height:200px;border-radius:8px">';
 
     // 轮询扫码结果
-    const poll = setInterval(async () => {
-      const res = await fetch('/api/login/check', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({key:qr.key}) }).then(r => r.json());
+    let attempts = 0;
+    const MAX_ATTEMPTS = 150; // 5 分钟超时
 
-      if (res.code === 802) {
-        document.getElementById('qr-status').innerText = '✅ 已扫码，确认中...';
-      } else if (res.code === 803) {
-        clearInterval(poll);
-        document.getElementById('qr-status').innerHTML = '🎉 登录成功！cookie 已自动保存，重启服务器即可听歌';
-        document.getElementById('msg').innerHTML = '✅ 登录成功，去重启服务器吧';
-      } else if (res.code === 800) {
+    const poll = setInterval(async () => {
+      attempts++;
+      if (attempts > MAX_ATTEMPTS) {
         clearInterval(poll);
         document.getElementById('qr-status').innerText = '二维码已过期，点刷新重试';
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/login/check', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({key:qr.key}) }).then(r => r.json());
+
+        if (res.code === 802) {
+          document.getElementById('qr-status').innerText = '✅ 已扫码，请在手机上确认...';
+        } else if (res.code === 803) {
+          clearInterval(poll);
+          document.getElementById('qr-status').innerHTML = '🎉 登录成功！cookie 已保存，刷新 Claudio 页面即可听歌';
+          document.getElementById('msg').innerHTML = '✅ 登录成功！刷新 Claudio 开始听歌';
+        } else if (res.code === 800) {
+          clearInterval(poll);
+          document.getElementById('qr-status').innerText = '二维码已过期，点刷新重试';
+        }
+      } catch (e) {
+        // 单次轮询失败不中断，继续重试
       }
     }, 2000);
   } catch (e) {
